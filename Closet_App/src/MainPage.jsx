@@ -4,7 +4,8 @@ import { Shuffle } from "lucide-react";
 import { closetItems } from "./data/closetItems";
 import { generateOutfits, isValidForOccasion } from "./lib/generateOutfits";
 import ClosetGrid from "./ClosetGrid";
-import "./index.css";
+import TryOnOverlay from "./Tryonoverlay.jsx";
+import "./index.css"; 
 
 const c = {
   bg: "#0A0A1A",
@@ -19,7 +20,7 @@ const c = {
   black: "#0A0A0A",
 };
 
-const OCCASIONS = ["reading", "casual date", "formal", "swimming", "gym", "work", "errands"];
+const OCCASIONS = ["reading", "casual date", "fancy dinner", "swimming", "gym", "work", "errands"];
 
 // Turns an id like "top-white-linen-shirt" into "White linen shirt"
 // for items that don't have an explicit `name` yet.
@@ -110,7 +111,7 @@ function OutfitGenerator({ onViewCloset }) {
   const allBottoms = closetItems.filter((i) => i.category === "bottom");
 
   const [top, setTop] = useState(() => toDisplay(allTops[0] || PLACEHOLDER, "TOP"));
-  const [bottom, setBottom] = useState(() => toDisplay(allBottoms[1] || PLACEHOLDER, "BOTTOM"));
+  const [bottom, setBottom] = useState(() => toDisplay(allBottoms[0] || PLACEHOLDER, "BOTTOM"));
   const [spinningTop, setSpinningTop] = useState(false);
   const [spinningBottom, setSpinningBottom] = useState(false);
   const [justLandedTop, setJustLandedTop] = useState(false);
@@ -146,11 +147,14 @@ function OutfitGenerator({ onViewCloset }) {
     spinReel(filteredBottoms, setBottom, setSpinningBottom, setJustLandedBottom, "BOTTOM", 1400, chosen.bottom);
   };
 
-  const tryItOn = () => {
-    console.log("Trying on:", top.label, "with", bottom.label);
-  };
+  const [tryingOn, setTryingOn] = useState(false);
+  const tryItOn = () => setTryingOn(true);
 
   const isSpinning = spinningTop || spinningBottom;
+
+  if (tryingOn) {
+    return <TryOnOverlay top={top} bottom={bottom} onClose={() => setTryingOn(false)} />;
+  }
 
   return (
     <div
