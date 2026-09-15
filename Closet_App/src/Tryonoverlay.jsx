@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState } from "react";
+import { Trash2 } from "lucide-react";
 
-const BASE_PHOTO = "/Other_pics/model_sleepwear.webp"; // adjust to wherever your base photo actually lives
+
+
+const BASE_PHOTO = "/Other_pics/sim_character.webp"; // adjust to wherever your base photo actually lives
 
 const DEFAULT_TOP = { top: 18, left: 28, width: 44, height: 30 };
 const DEFAULT_BOTTOM = { top: 45, left: 26, width: 48, height: 40 };
+
 
 function loadSaved(key, fallback) {
   try {
@@ -13,21 +17,29 @@ function loadSaved(key, fallback) {
     return fallback;
   }
 }
-
+ 
 // A draggable, resizable box used to position one garment over the photo.
 // Drag anywhere on the box to move it; drag the corner handle to resize.
-function DraggableBox({ box, setBox, containerRef, label, color, children }) {
+function DraggableBox({ box, setBox, containerRef, trashRef, onTrash, label, color, children }) {
   const dragState = useRef(null);
-
+ 
   const toPercent = (px, total) => (px / total) * 100;
-
+ 
+  const isOverTrash = (clientX, clientY) => {
+    if (!trashRef.current) return false;
+    const rect = trashRef.current.getBoundingClientRect();
+    return clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom;
+  };
+ 
   const onDragMove = (e) => {
     if (!dragState.current || !containerRef.current) return;
+    dragState.current.lastClientX = e.clientX;
+    dragState.current.lastClientY = e.clientY;
     const rect = containerRef.current.getBoundingClientRect();
     const dxPct = toPercent(e.clientX - dragState.current.startX, rect.width);
     const dyPct = toPercent(e.clientY - dragState.current.startY, rect.height);
     const start = dragState.current.box;
-
+ 
     if (dragState.current.mode === "move") {
       setBox({
         ...start,
@@ -42,20 +54,24 @@ function DraggableBox({ box, setBox, containerRef, label, color, children }) {
       });
     }
   };
-
+ 
   const onDragEnd = () => {
+    const wasMove = dragState.current?.mode === "move";
+    const droppedOnTrash =
+      wasMove && dragState.current && isOverTrash(dragState.current.lastClientX, dragState.current.lastClientY);
     dragState.current = null;
     window.removeEventListener("mousemove", onDragMove);
     window.removeEventListener("mouseup", onDragEnd);
+    if (droppedOnTrash) onTrash();
   };
-
+ 
   const startDrag = (mode) => (e) => {
     e.stopPropagation();
-    dragState.current = { mode, startX: e.clientX, startY: e.clientY, box: { ...box } };
+    dragState.current = { mode, startX: e.clientX, startY: e.clientY, lastClientX: e.clientX, lastClientY: e.clientY, box: { ...box } };
     window.addEventListener("mousemove", onDragMove);
     window.addEventListener("mouseup", onDragEnd);
   };
-
+ 
   return (
     <div
       onMouseDown={startDrag("move")}
@@ -83,28 +99,38 @@ function DraggableBox({ box, setBox, containerRef, label, color, children }) {
     </div>
   );
 }
-
+ 
 export default function TryOnOverlay({ top, bottom, onClose }) {
   const containerRef = useRef(null);
+  const trashRef = useRef(null);
   const [topBox, setTopBox] = useState(() => loadSaved("tryOnTopRegion", DEFAULT_TOP));
   const [bottomBox, setBottomBox] = useState(() => loadSaved("tryOnBottomRegion", DEFAULT_BOTTOM));
   const [editMode, setEditMode] = useState(true);
-
+  const [hiddenTop, setHiddenTop] = useState(false);
+  const [hiddenBottom, setHiddenBottom] = useState(false);
+ 
+  // A new outfit (different top/bottom) should start fully visible again —
+  // hiding is a per-look choice, not a permanent setting.
+  useEffect(() => {
+    setHiddenTop(false);
+    setHiddenBottom(false);
+  }, [top?.id, bottom?.id]);
+ 
   useEffect(() => {
     localStorage.setItem("tryOnTopRegion", JSON.stringify(topBox));
   }, [topBox]);
-
+ 
   useEffect(() => {
     localStorage.setItem("tryOnBottomRegion", JSON.stringify(bottomBox));
   }, [bottomBox]);
-
+ 
   const boxStyle = (box) => ({
     top: `${box.top}%`,
     left: `${box.left}%`,
     width: `${box.width}%`,
     height: `${box.height}%`,
   });
-
+ 
   return (
     <div
       className="min-h-screen w-full flex items-center justify-center p-6"
@@ -120,6 +146,18 @@ export default function TryOnOverlay({ top, bottom, onClose }) {
           >
             {editMode ? "DONE ADJUSTING" : "ADJUST POSITIONS"}
           </button>
+ 
+          {editMode && (
+            <div
+              ref={trashRef}
+              className="p-2"
+              title="Drag a garment here to hide it"
+              style={{ backgroundColor: "#FF3EA5", border: "2px solid #0A0A0A" }}
+            >
+              <Trash2 size={16} color="#0A0A0A" />
+            </div>
+          )}
+ 
           <button
             type="button"
             onClick={onClose}
@@ -129,33 +167,53 @@ export default function TryOnOverlay({ top, bottom, onClose }) {
             CLOSE
           </button>
         </div>
-
+ 
         <div
           ref={containerRef}
           className="relative w-full"
           style={{ border: "3px solid #0A0A0A", boxShadow: "4px 4px 0px #0A0A0A" }}
         >
           <img src={BASE_PHOTO} alt="you" className="w-full block" draggable={false} />
-
+ 
           {editMode ? (
             <>
-              <DraggableBox box={topBox} setBox={setTopBox} containerRef={containerRef} label="TOP" color="#00E5FF">
-                {top?.photoUrl && (
-                  <img src={top.photoUrl} alt="" className="w-full h-full object-contain opacity-80" draggable={false} />
-                )}
-              </DraggableBox>
-              <DraggableBox box={bottomBox} setBox={setBottomBox} containerRef={containerRef} label="BOTTOM" color="#B4FF39">
-                {bottom?.photoUrl && (
-                  <img src={bottom.photoUrl} alt="" className="w-full h-full object-contain opacity-80" draggable={false} />
-                )}
-              </DraggableBox>
+              {!hiddenTop && (
+                <DraggableBox
+                  box={topBox}
+                  setBox={setTopBox}
+                  containerRef={containerRef}
+                  trashRef={trashRef}
+                  onTrash={() => setHiddenTop(true)}
+                  label="TOP"
+                  color="#00E5FF"
+                >
+                  {top?.photoUrl && (
+                    <img src={top.photoUrl} alt="" className="w-full h-full object-contain opacity-80" draggable={false} />
+                  )}
+                </DraggableBox>
+              )}
+              {!hiddenBottom && (
+                <DraggableBox
+                  box={bottomBox}
+                  setBox={setBottomBox}
+                  containerRef={containerRef}
+                  trashRef={trashRef}
+                  onTrash={() => setHiddenBottom(true)}
+                  label="BOTTOM"
+                  color="#B4FF39"
+                >
+                  {bottom?.photoUrl && (
+                    <img src={bottom.photoUrl} alt="" className="w-full h-full object-contain opacity-80" draggable={false} />
+                  )}
+                </DraggableBox>
+              )}
             </>
           ) : (
             <>
-              {top?.photoUrl && (
+              {!hiddenTop && top?.photoUrl && (
                 <img src={top.photoUrl} alt={top.label || "top"} className="absolute object-contain" style={boxStyle(topBox)} />
               )}
-              {bottom?.photoUrl && (
+              {!hiddenBottom && bottom?.photoUrl && (
                 <img
                   src={bottom.photoUrl}
                   alt={bottom.label || "bottom"}
@@ -166,10 +224,36 @@ export default function TryOnOverlay({ top, bottom, onClose }) {
             </>
           )}
         </div>
-
+ 
+        {(hiddenTop || hiddenBottom) && (
+          <div className="flex gap-2 mt-2">
+            {hiddenTop && (
+              <button
+                type="button"
+                onClick={() => setHiddenTop(false)}
+                className="px-2 py-1 text-[10px] font-bold uppercase"
+                style={{ backgroundColor: "#00E5FF", border: "2px solid #0A0A0A" }}
+              >
+                + SHOW TOP
+              </button>
+            )}
+            {hiddenBottom && (
+              <button
+                type="button"
+                onClick={() => setHiddenBottom(false)}
+                className="px-2 py-1 text-[10px] font-bold uppercase"
+                style={{ backgroundColor: "#B4FF39", border: "2px solid #0A0A0A" }}
+              >
+                + SHOW BOTTOM
+              </button>
+            )}
+          </div>
+        )}
+ 
         {editMode && (
           <p className="text-[10px] mt-2" style={{ color: "#B9AFC4" }}>
-            Drag a box to move it, drag its bottom-right corner to resize. Positions save automatically for next time.
+            Drag a box to move it, drag its bottom-right corner to resize, or drag it onto the trash icon to hide it.
+            Positions save automatically for next time.
           </p>
         )}
       </div>
