@@ -7,6 +7,8 @@
 // or a free site like imagecolorpicker.com — drop the photo in, click the
 // garment, copy the hex.
 
+const closetImageBase = `${import.meta.env.BASE_URL}Clothes_pics/`;
+
 export const closetItems = [
   {
     id: "top-87-shirt",
@@ -304,4 +306,7 @@ export const closetItems = [
 
 
   // Add more items here, following the same shape.
-];
+].map((item) => ({
+  ...item,
+  photoUrl: item.photoUrl ? `${closetImageBase}${item.photoUrl.split("/").pop()}` : item.photoUrl,
+}));

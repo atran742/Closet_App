@@ -3,7 +3,7 @@ import { Trash2 } from "lucide-react";
 
 
 
-const BASE_PHOTO = "/Other_pics/sim_character.webp"; // adjust to wherever your base photo actually lives
+const BASE_PHOTO = `${import.meta.env.BASE_URL}Other_pics/sim_character.webp`;
 
 const DEFAULT_TOP = { top: 18, left: 28, width: 44, height: 30 };
 const DEFAULT_BOTTOM = { top: 45, left: 26, width: 48, height: 40 };
