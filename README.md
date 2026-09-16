@@ -39,19 +39,3 @@ src/
 	lib/                    Outfit, color, and pose utilities
 ```
 
-## Deploy to GitHub Pages
-
-The repository includes a GitHub Actions workflow that builds and deploys the app whenever changes are pushed to `main`.
-
-1. Push the project to GitHub.
-2. In the repository, open **Settings > Pages**.
-3. Set **Source** to **GitHub Actions**.
-4. Open the **Actions** tab to monitor the deployment.
-
-The published app will be available at:
-
-```text
-https://atran742.github.io/Closet_App/
-```
-
-The app uses hash-based routes, so the closet and outfit generator continue to work when their URLs are refreshed on GitHub Pages.
