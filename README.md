@@ -1,23 +1,40 @@
-# React + Vite
+# Closet App
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Closet App is a React web app for browsing clothing items, creating outfit combinations, and trying outfits on a model image.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Browse tops and bottoms in your closet
+- Filter clothing by occasion
+- Generate outfit combinations
+- Adjust the position and size of tops and bottoms in try-on mode
+- Hide garments while editing a look
+- Save try-on positions in the browser's local storage
 
-## React Compiler
+## Requirements
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Node.js 18 or newer
+- npm
 
-## Expanding the Oxlint configuration
+## Getting started
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
-
-# How to run this locally 
- 
-```bash 
+```bash
 cd Closet_App
+npm install
+```
+
+```bash
 npm run dev
+```
+
+## Project structure
+
+```text
+src/
+	App.jsx                 Application routes
+	ClosetGrid.jsx          Closet browsing interface
+	MainPage.jsx            Outfit generation interface
+	Tryonoverlay.jsx        Try-on positioning interface
+	data/closetItems.js     Closet item data
+	lib/                    Outfit, color, and pose utilities
 ```
