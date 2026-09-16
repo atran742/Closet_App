@@ -81,6 +81,7 @@ function DraggableBox({ box, setBox, containerRef, trashRef, onTrash, label, col
         left: `${box.left}%`,
         width: `${box.width}%`,
         height: `${box.height}%`,
+        zIndex: label === "TOP" ? 2 : 1,
         border: `2px dashed ${color}`,
       }}
     >
@@ -211,14 +212,19 @@ export default function TryOnOverlay({ top, bottom, onClose }) {
           ) : (
             <>
               {!hiddenTop && top?.photoUrl && (
-                <img src={top.photoUrl} alt={top.label || "top"} className="absolute object-contain" style={boxStyle(topBox)} />
+                <img
+                  src={top.photoUrl}
+                  alt={top.label || "top"}
+                  className="absolute object-contain"
+                  style={{ ...boxStyle(topBox), zIndex: 2 }}
+                />
               )}
               {!hiddenBottom && bottom?.photoUrl && (
                 <img
                   src={bottom.photoUrl}
                   alt={bottom.label || "bottom"}
                   className="absolute object-contain"
-                  style={boxStyle(bottomBox)}
+                  style={{ ...boxStyle(bottomBox), zIndex: 1 }}
                 />
               )}
             </>

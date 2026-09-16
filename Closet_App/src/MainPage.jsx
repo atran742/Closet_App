@@ -197,7 +197,7 @@ function OutfitGenerator({ onViewCloset }) {
 
         {/* Body panel */}
         <div style={{ backgroundColor: c.panel, border: `3px solid ${c.black}`, borderTop: "none" }} className="p-5">
-          <button
+          {/* <button
             type="button"
             onClick={onViewCloset}
             className="inline-block mb-4 px-3 py-1.5 text-xs font-bold uppercase tracking-wide"
@@ -210,7 +210,7 @@ function OutfitGenerator({ onViewCloset }) {
             }}
           >
             VIEW CLOSET
-          </button>
+          </button> */}
 
           <p className="text-xs font-bold uppercase tracking-wide mb-4" style={{ color: c.inkMuted }}>
             &gt; SELECT OCCASION:
